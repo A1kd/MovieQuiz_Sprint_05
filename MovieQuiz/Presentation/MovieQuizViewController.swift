@@ -14,12 +14,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let questionsAmount: Int = 10
-    
+    private var isAnswerProcessing = false // ← ДОБАВЬ ЭТУ СТРОКУ
+
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var alertPresenter: ResultAlertPresenter?
     private var statisticService: StatisticServiceProtocol?
-    
     // MARK: - View Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,27 +61,34 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - IBActions
     @IBAction private func yesButtonClicked(_ sender: Any) {
+        // Если уже обрабатывается ответ - выходим
+        guard !isAnswerProcessing else { return }
+        
         guard let currentQuestion = currentQuestion else {
             return
         }
         
-        // Сразу отключаем кнопки!
+        // Блокируем повторные нажатия
+        isAnswerProcessing = true
         disableButtons()
         
         showAnswerResult(isCorrect: currentQuestion.correctAnswer)
     }
 
     @IBAction private func noButtonClicked(_ sender: Any) {
+        // Если уже обрабатывается ответ - выходим
+        guard !isAnswerProcessing else { return }
+        
         guard let currentQuestion = currentQuestion else {
             return
         }
         
-        // Сразу отключаем кнопки!
+        // Блокируем повторные нажатия
+        isAnswerProcessing = true
         disableButtons()
         
         showAnswerResult(isCorrect: !currentQuestion.correctAnswer)
     }
-    
     // MARK: - Private Methods
     private func showLoadingIndicator() {
         activityIndicator.isHidden = false
@@ -121,6 +128,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             guard let self = self else { return }
             self.showNextQuestionOrResults()
             self.enableButtons()
+            self.isAnswerProcessing = false // ← ДОБАВЬ ЭТУ СТРОКУ
         }
     }
 
@@ -176,6 +184,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func restartGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
+        isAnswerProcessing = false // ← ДОБАВЬ ЭТУ СТРОКУ
         questionFactory?.requestNextQuestion()
     }
     
